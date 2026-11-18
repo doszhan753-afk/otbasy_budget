@@ -1,0 +1,36 @@
+{% macro month_nav(endpoint, month) %}
+<div class="month-nav">
+  <a class="icon-btn" href="{{ url_for(endpoint, month=shift_month(month, -1)) }}" aria-label="Алдыңғы ай">‹</a>
+  <form method="get" action="{{ url_for(endpoint) }}">
+    <label class="sr-only" for="month-input">Ай мен жыл</label>
+    <input type="month" id="month-input" name="month" value="{{ month }}" min="2000-01" max="2100-12" data-autosubmit>
+    <noscript><button class="btn" type="submit">Көрсету</button></noscript>
+  </form>
+  <a class="icon-btn" href="{{ url_for(endpoint, month=shift_month(month, 1)) }}" aria-label="Келесі ай">›</a>
+</div>
+{% endmacro %}
+
+{% macro progress(percent, status, label) %}
+<div class="progress status-{{ status }}" role="progressbar" aria-label="{{ label }}"
+     aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}">
+  <span style="width: {{ percent }}%"></span>
+</div>
+{% endmacro %}
+
+{% macro trend_chart(trend) %}
+<div class="trend">
+  {% for t in trend %}
+  <div class="trend-col">
+    <div class="trend-bars">
+      <span class="bar bar-in" style="height: {{ t.income_h }}%"><span class="sr-only">{{ t.short }}, кіріс: {{ t.income|money }}</span></span>
+      <span class="bar bar-out" style="height: {{ t.expense_h }}%"><span class="sr-only">{{ t.short }}, шығыс: {{ t.expense|money }}</span></span>
+    </div>
+    <span class="trend-label" title="Кіріс: {{ t.income|money }}; шығыс: {{ t.expense|money }}">{{ t.short }}</span>
+  </div>
+  {% endfor %}
+</div>
+<ul class="legend legend-inline">
+  <li><i class="dot dot-in"></i>Кіріс</li>
+  <li><i class="dot dot-out"></i>Шығыс</li>
+</ul>
+{% endmacro %}

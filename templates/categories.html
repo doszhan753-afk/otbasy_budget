@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Санаттар — Отбасы бюджеті{% endblock %}
+{% block content %}
+{% macro cat_list(rows, empty_text) %}
+  {% if rows %}
+  <ul class="item-list">
+    {% for c in rows %}
+    <li>
+      <span>{{ c.name }}</span>
+      <span class="muted">{{ c.uses }} операция</span>
+      <form method="post" action="{{ url_for('main.category_delete', cat_id=c.id) }}" data-confirm="«{{ c.name }}» санатын жою керек пе?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="link-danger">Жою</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">{{ empty_text }}</p>{% endif %}
+{% endmacro %}
+
+<header class="page-head"><div><h1>Санаттар</h1><p class="muted">Операциялар осы санаттар бойынша топтастырылады.</p></div></header>
+
+<form method="post" class="panel inline-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field field-grow">
+    <label for="name">Жаңа санат атауы</label>
+    <input id="name" name="name" type="text" minlength="2" maxlength="40" required>
+  </div>
+  <div class="field">
+    <label for="kind">Түрі</label>
+    <select id="kind" name="kind">
+      <option value="expense">Шығыс</option>
+      <option value="income">Кіріс</option>
+    </select>
+  </div>
+  <div class="field field-actions"><button class="btn btn-primary" type="submit">Санат қосу</button></div>
+</form>
+
+<div class="grid-2">
+  <section class="panel"><h2>Шығыс санаттары</h2>{{ cat_list(expense, 'Шығыс санаты жоқ.') }}</section>
+  <section class="panel"><h2>Кіріс санаттары</h2>{{ cat_list(income, 'Кіріс санаты жоқ.') }}</section>
+</div>
+<p class="hint">Операциясы бар санатты жою мүмкін емес — алдымен сол операцияларды өңдеңіз немесе жойыңыз.</p>
+{% endblock %}

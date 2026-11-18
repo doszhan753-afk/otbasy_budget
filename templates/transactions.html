@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Операциялар — Отбасы бюджеті{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Операциялар</h1>
+    <p class="muted">{{ 'Барлық уақыт' if month == 'all' else month_label(month) }} · табылғаны: {{ count }}</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn" href="{{ url_for('main.transaction_new', kind='income') }}">Кіріс қосу</a>
+    <a class="btn btn-primary" href="{{ url_for('main.transaction_new', kind='expense') }}">Шығыс қосу</a>
+  </div>
+</header>
+
+<form class="filters panel" method="get" action="{{ url_for('main.transactions') }}">
+  <div class="field">
+    <label for="f-month">Ай</label>
+    <input id="f-month" type="month" name="month" value="{{ '' if month == 'all' else month }}" min="2000-01" max="2100-12">
+  </div>
+  <div class="field">
+    <label for="f-kind">Түрі</label>
+    <select id="f-kind" name="kind">
+      <option value="">Барлығы</option>
+      {% for k, label in KIND_LABEL.items() %}<option value="{{ k }}" {{ 'selected' if kind == k }}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="f-cat">Санат</label>
+    <select id="f-cat" name="category">
+      <option value="">Барлығы</option>
+      {% for c in categories %}<option value="{{ c.id }}" {{ 'selected' if category == c.id }}>{{ c.name }} ({{ KIND_LABEL[c.kind]|lower }})</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="f-member">Мүше</label>
+    <select id="f-member" name="member">
+      <option value="">Барлығы</option>
+      {% for m in members %}<option value="{{ m.id }}" {{ 'selected' if member == m.id }}>{{ m.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field field-grow">
+    <label for="f-q">Түсініктеме бойынша іздеу</label>
+    <input id="f-q" type="search" name="q" value="{{ q }}" maxlength="100">
+  </div>
+  <div class="field field-actions">
+    <button class="btn btn-primary" type="submit">Сүзу</button>
+    <a class="btn btn-ghost" href="{{ url_for('main.transactions', month='all') }}">Барлық уақыт</a>
+  </div>
+</form>
+
+{% if rows %}
+<p class="summary-line">
+  Кіріс: <strong class="pos">{{ sum_in|money }}</strong> · Шығыс: <strong class="neg">{{ sum_out|money }}</strong>
+</p>
+<div class="panel table-panel">
+  <div class="table-wrap">
+    <table class="table table-stack">
+      <thead>
+        <tr><th>Күні</th><th>Санат</th><th>Мүше</th><th>Түсініктеме</th><th class="num">Сома</th><th><span class="sr-only">Әрекеттер</span></th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td data-label="Күні">{{ r.tx_date|kzdate }}</td>
+          <td data-label="Санат">{{ r.category }}</td>
+          <td data-label="Мүше">{{ r.member or '—' }}</td>
+          <td data-label="Түсініктеме" class="note">{{ r.note or '—' }}</td>
+          <td data-label="Сома" class="num {{ 'pos' if r.kind == 'income' else 'neg' }}">{{ '+' if r.kind == 'income' else '−' }}{{ r.amount|money }}</td>
+          <td class="actions">
+            <a href="{{ url_for('main.transaction_edit', tx_id=r.id) }}">Өңдеу</a>
+            <form method="post" action="{{ url_for('main.transaction_delete', tx_id=r.id) }}" data-confirm="Операцияны жою керек пе?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+              <button type="submit" class="link-danger">Жою</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if pages > 1 %}
+<nav class="pagination" aria-label="Беттер">
+  {% if page > 1 %}<a class="btn" href="{{ url_for('main.transactions', page=page - 1, **args) }}">‹ Алдыңғы</a>{% endif %}
+  <span>{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a class="btn" href="{{ url_for('main.transactions', page=page + 1, **args) }}">Келесі ›</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<section class="panel empty">
+  <h2>Операция табылмады</h2>
+  <p>Сүзгіні өзгертіңіз немесе жаңа операция қосыңыз.</p>
+  <a class="btn btn-primary" href="{{ url_for('main.transaction_new') }}">Операция қосу</a>
+</section>
+{% endif %}
+{% endblock %}

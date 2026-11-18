@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Тіркелу — Отбасы бюджеті{% endblock %}
+{% block content %}
+<div class="ornament ornament-lg" aria-hidden="true"></div>
+<h1>Тіркелу</h1>
+<p class="muted">Аккаунт жасаған соң бастапқы санаттар автоматты түрде қосылады.</p>
+<form method="post" class="form" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="family_name">Отбасы атауы</label>
+  <input id="family_name" name="family_name" type="text" maxlength="60" value="{{ form.get('family_name', '') }}" placeholder="Мысалы, Нұрлановтар" required autofocus>
+  <label for="username">Логин</label>
+  <input id="username" name="username" type="text" maxlength="30" value="{{ form.get('username', '') }}" autocomplete="username" required>
+  <p class="hint">3–30 таңба: латын әріптері, сандар, нүкте, сызықша немесе астын сызу.</p>
+  <label for="password">Құпиясөз</label>
+  <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+  <label for="password2">Құпиясөзді қайталаңыз</label>
+  <input id="password2" name="password2" type="password" autocomplete="new-password" minlength="6" required>
+  <button class="btn btn-primary btn-block" type="submit">Тіркелу</button>
+</form>
+<p class="auth-alt">Аккаунт бар ма? <a href="{{ url_for('main.login') }}">Кіру</a></p>
+{% endblock %}

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+budget.db
+.secret_key
+.pytest_cache/
+venv/
+.venv/
+.vercel

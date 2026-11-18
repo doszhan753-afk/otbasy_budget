@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Кіру — Отбасы бюджеті{% endblock %}
+{% block content %}
+<div class="ornament ornament-lg" aria-hidden="true"></div>
+<h1>Отбасы бюджеті</h1>
+<p class="muted">Үй шаруашылығының кірісі мен шығысын бір жерде жүргізіңіз.</p>
+<form method="post" class="form" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="username">Логин</label>
+  <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+  <label for="password">Құпиясөз</label>
+  <input id="password" name="password" type="password" autocomplete="current-password" required>
+  <button class="btn btn-primary btn-block" type="submit">Кіру</button>
+</form>
+<p class="auth-alt">Аккаунтыңыз жоқ па? <a href="{{ url_for('main.register') }}">Тіркелу</a></p>
+{% endblock %}

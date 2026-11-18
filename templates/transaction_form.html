@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Операцияны өңдеу' if editing else 'Жаңа операция' }} — Отбасы бюджеті{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>{{ 'Операцияны өңдеу' if editing else 'Жаңа операция' }}</h1>
+</header>
+<form method="post" class="form panel form-narrow" novalidate
+      action="{{ url_for('main.transaction_edit', tx_id=tx_id) if editing else url_for('main.transaction_new') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <fieldset class="segmented">
+    <legend>Түрі</legend>
+    {% for k, label in KIND_LABEL.items() %}
+    <input type="radio" id="kind-{{ k }}" name="kind" value="{{ k }}" {{ 'checked' if tx.kind == k }} data-kind-radio>
+    <label for="kind-{{ k }}">{{ label }}</label>
+    {% endfor %}
+  </fieldset>
+
+  <label for="amount">Сома (₸)</label>
+  <input id="amount" name="amount" type="text" inputmode="numeric" autocomplete="off" value="{{ tx.amount or '' }}" placeholder="15000" required>
+
+  <label for="tx_date">Күні</label>
+  <input id="tx_date" name="tx_date" type="date" min="2000-01-01" max="2100-12-31" value="{{ tx.tx_date or today() }}" required>
+
+  <label for="category_id">Санат</label>
+  <select id="category_id" name="category_id" required data-category-select data-selected="{{ tx.category_id|string if tx.category_id else '' }}">
+    {% for c in categories %}
+    <option value="{{ c.id }}" data-kind="{{ c.kind }}" {{ 'selected' if tx.category_id|string == c.id|string }}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="member_id">Кім жасады <span class="optional">(міндетті емес)</span></label>
+  <select id="member_id" name="member_id">
+    <option value="">Көрсетілмеген</option>
+    {% for m in members %}
+    <option value="{{ m.id }}" {{ 'selected' if tx.member_id|string == m.id|string }}>{{ m.name }}</option>
+    {% endfor %}
+  </select>
+  {% if not members %}<p class="hint">Мүшелерді <a href="{{ url_for('main.members') }}">«Отбасы мүшелері»</a> бөлімінде қосуға болады.</p>{% endif %}
+
+  <label for="note">Түсініктеме <span class="optional">(міндетті емес)</span></label>
+  <input id="note" name="note" type="text" maxlength="200" value="{{ tx.note or '' }}">
+
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Сақтау</button>
+    <a class="btn btn-ghost" href="{{ url_for('main.transactions') }}">Бас тарту</a>
+  </div>
+</form>
+{% endblock %}

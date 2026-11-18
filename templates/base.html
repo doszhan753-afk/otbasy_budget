@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Отбасы бюджеті{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="{{ 'shell' if g.user else 'auth' }}">
+  {% if g.user %}
+  {% set ep = request.endpoint %}
+  <header class="topbar">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebar" data-nav-toggle>Мәзір</button>
+    <span class="topbar-brand">Отбасы бюджеті</span>
+  </header>
+  <aside class="sidebar" id="sidebar">
+    <div class="ornament" aria-hidden="true"></div>
+    <a class="brand" href="{{ url_for('main.dashboard') }}">
+      Отбасы бюджеті
+      <small>{{ g.user.family_name }}</small>
+    </a>
+    <nav aria-label="Негізгі мәзір">
+      <a href="{{ url_for('main.dashboard') }}" {% if ep == 'main.dashboard' %}aria-current="page"{% endif %}>Шолу</a>
+      <a href="{{ url_for('main.transactions') }}" {% if ep in ('main.transactions', 'main.transaction_new', 'main.transaction_edit') %}aria-current="page"{% endif %}>Операциялар</a>
+      <a href="{{ url_for('main.budgets') }}" {% if ep == 'main.budgets' %}aria-current="page"{% endif %}>Лимиттер</a>
+      <a href="{{ url_for('main.reports') }}" {% if ep == 'main.reports' %}aria-current="page"{% endif %}>Есептер</a>
+      <a href="{{ url_for('main.categories') }}" {% if ep == 'main.categories' %}aria-current="page"{% endif %}>Санаттар</a>
+      <a href="{{ url_for('main.members') }}" {% if ep == 'main.members' %}aria-current="page"{% endif %}>Отбасы мүшелері</a>
+    </nav>
+    <form class="logout" method="post" action="{{ url_for('main.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <span class="logout-user">{{ g.user.username }}</span>
+      <button type="submit" class="btn btn-ghost">Шығу</button>
+    </form>
+  </aside>
+  {% endif %}
+  <main class="{{ 'content' if g.user else 'auth-card' }}" id="main">
+    {% include "_flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

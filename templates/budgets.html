@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import month_nav, progress with context %}
+{% block title %}Лимиттер — Отбасы бюджеті{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Лимиттер</h1>
+    <p class="muted">{{ month_label(month) }} · санат бойынша айлық шығыс шегі. Бос қалдырсаңыз, лимит жойылады.</p>
+  </div>
+  <div class="head-actions">
+    {{ month_nav('main.budgets', month) }}
+    <form method="post" action="{{ url_for('main.budgets_copy') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="month" value="{{ month }}">
+      <button class="btn" type="submit">Өткен айдан көшіру</button>
+    </form>
+  </div>
+</header>
+
+<section class="panel table-panel">
+  <div class="table-wrap">
+    <table class="table table-stack">
+      <thead><tr><th>Санат</th><th>Лимит (₸)</th><th class="num">Жұмсалды</th><th class="num">Қалды</th><th>Орындалуы</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td data-label="Санат">{{ r.name }}</td>
+          <td data-label="Лимит (₸)">
+            <form method="post" class="limit-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="month" value="{{ month }}">
+              <input type="hidden" name="category_id" value="{{ r.id }}">
+              <label class="sr-only" for="limit-{{ r.id }}">«{{ r.name }}» лимиті</label>
+              <input id="limit-{{ r.id }}" name="limit" type="text" inputmode="numeric" value="{{ r.limit_amount or '' }}" placeholder="—">
+              <button class="btn" type="submit">Сақтау</button>
+            </form>
+          </td>
+          <td data-label="Жұмсалды" class="num">{{ r.spent|money }}</td>
+          <td data-label="Қалды" class="num {{ 'neg' if r.limit_amount and r.left < 0 }}">{{ r.left|money if r.limit_amount else '—' }}</td>
+          <td data-label="Орындалуы" class="meter-cell">
+            {% if r.limit_amount %}
+              {{ progress(r.percent, r.status, r.name) }}
+              <span class="meter-text status-text-{{ r.status }}">{{ r.raw_percent }}%{{ ' — лимиттен асты' if r.status == 'over' else '' }}</span>
+            {% else %}<span class="muted">Лимит қойылмаған</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

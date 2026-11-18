@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% from "_macros.html" import month_nav, trend_chart with context %}
+{% block title %}Есептер — Отбасы бюджеті{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Есеп: {{ month_label(month) }}</h1>
+    <p class="muted">{{ g.user.family_name }}</p>
+  </div>
+  <div class="head-actions no-print">
+    {{ month_nav('main.reports', month) }}
+    <a class="btn" href="{{ url_for('main.export_csv', month=month) }}">CSV жүктеу</a>
+    <button class="btn" type="button" data-print>Басып шығару</button>
+  </div>
+</header>
+
+<section class="stats stats-4" aria-label="Қорытынды көрсеткіштер">
+  <article class="stat"><h2>Кірістер</h2><p class="stat-value pos">{{ totals.income|money }}</p></article>
+  <article class="stat"><h2>Шығыстар</h2><p class="stat-value neg">{{ totals.expense|money }}</p></article>
+  <article class="stat"><h2>Қалдық</h2><p class="stat-value">{{ totals.balance|money }}</p></article>
+  <article class="stat">
+    <h2>Күніне орта шығыс</h2><p class="stat-value">{{ avg_day|money }}</p>
+    <p class="stat-note">{% if savings_rate is not none %}Жинақтау үлесі: {{ savings_rate }}%{% else %}Кіріс жоқ{% endif %}</p>
+  </article>
+</section>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>Шығыстар санаттар бойынша</h2>
+    {% if expense_rows %}
+    <ul class="bar-list">
+      {% for r in expense_rows %}
+      {% set pct = (r.total * 100 / totals.expense)|round(1) %}
+      <li>
+        <div class="limit-row"><span>{{ r.name }}</span><span>{{ r.total|money }} <span class="muted">· {{ pct }}%</span></span></div>
+        <div class="progress status-ok"><span style="width: {{ pct }}%"></span></div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Бұл айда шығыс жоқ.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>Кірістер санаттар бойынша</h2>
+    {% if income_rows %}
+    <ul class="bar-list">
+      {% for r in income_rows %}
+      {% set pct = (r.total * 100 / totals.income)|round(1) %}
+      <li>
+        <div class="limit-row"><span>{{ r.name }}</span><span>{{ r.total|money }} <span class="muted">· {{ pct }}%</span></span></div>
+        <div class="progress status-income"><span style="width: {{ pct }}%"></span></div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Бұл айда кіріс жоқ.</p>{% endif %}
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>Отбасы мүшелері бойынша</h2>
+    {% if by_member %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Мүше</th><th class="num">Кіріс</th><th class="num">Шығыс</th></tr></thead>
+        <tbody>
+          {% for m in by_member %}
+          <tr><td>{{ m.name }}</td><td class="num pos">{{ m.earned|money }}</td><td class="num neg">{{ m.spent|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<p class="muted">Деректер жоқ.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>Ең үлкен бес шығыс</h2>
+    {% if top %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Күні</th><th>Санат</th><th class="num">Сома</th></tr></thead>
+        <tbody>
+          {% for r in top %}
+          <tr><td>{{ r.tx_date|kzdate }}</td><td>{{ r.category }}{% if r.note %}<br><span class="muted">{{ r.note }}</span>{% endif %}</td><td class="num neg">{{ r.amount|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<p class="muted">Деректер жоқ.</p>{% endif %}
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Соңғы алты айдағы динамика</h2>
+  {{ trend_chart(trend) }}
+</section>
+{% endblock %}

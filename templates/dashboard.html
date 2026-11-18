@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_macros.html" import month_nav, progress, trend_chart with context %}
+{% block title %}Шолу — Отбасы бюджеті{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>{{ month_label(month) }}</h1>
+    <p class="muted">Айлық шолу · {{ g.user.family_name }}</p>
+  </div>
+  <div class="head-actions">
+    {{ month_nav('main.dashboard', month) }}
+    <a class="btn btn-primary" href="{{ url_for('main.transaction_new') }}">Операция қосу</a>
+  </div>
+</header>
+
+<section class="stats" aria-label="Айлық қорытынды">
+  <article class="stat stat-balance">
+    <div class="ornament" aria-hidden="true"></div>
+    <h2>Қалдық</h2>
+    <p class="stat-value">{{ totals.balance|money }}</p>
+    <p class="stat-note">{{ 'Кіріс шығыстан көп' if totals.balance > 0 else 'Кіріс пен шығыс тең' if totals.balance == 0 else 'Шығыс кірістен асып кетті' }}</p>
+  </article>
+  <article class="stat">
+    <h2>Кірістер</h2>
+    <p class="stat-value pos">{{ totals.income|money }}</p>
+  </article>
+  <article class="stat">
+    <h2>Шығыстар</h2>
+    <p class="stat-value neg">{{ totals.expense|money }}</p>
+  </article>
+</section>
+
+{% if not items and not recent %}
+<section class="panel empty">
+  <h2>Бұл айда операциялар жоқ</h2>
+  <p>Алғашқы кіріс немесе шығысты қосыңыз — диаграммалар мен есептер сол сәтте пайда болады.</p>
+  <a class="btn btn-primary" href="{{ url_for('main.transaction_new') }}">Операция қосу</a>
+</section>
+{% else %}
+<div class="grid-2">
+  <section class="panel">
+    <h2>Шығыстар құрылымы</h2>
+    {% if items %}
+    <div class="donut-wrap">
+      <div class="donut" style="background: {{ gradient }}" role="img" aria-label="Шығыстардың санаттар бойынша үлесі">
+        <div class="donut-hole"><span>{{ totals.expense|money }}</span></div>
+      </div>
+      <ul class="legend">
+        {% for it in items %}
+        <li><i class="dot" style="background: {{ it.color }}"></i><span class="legend-name">{{ it.name }}</span><span class="legend-val">{{ it.percent }}%</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <p class="muted">Бұл айда шығыс жоқ.</p>
+    {% endif %}
+  </section>
+  <section class="panel">
+    <h2>Соңғы алты ай</h2>
+    {{ trend_chart(trend) }}
+  </section>
+</div>
+
+{% if limits %}
+<section class="panel">
+  <div class="panel-head">
+    <h2>Айлық лимиттер</h2>
+    <a href="{{ url_for('main.budgets', month=month) }}">Лимиттерді өзгерту</a>
+  </div>
+  <ul class="limit-list">
+    {% for l in limits %}
+    <li>
+      <div class="limit-row">
+        <span>{{ l.name }}</span>
+        <span class="limit-nums status-text-{{ l.status }}">{{ l.spent|money }} / {{ l.limit_amount|money }}</span>
+      </div>
+      {{ progress(l.percent, l.status, l.name) }}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Соңғы операциялар</h2>
+    <a href="{{ url_for('main.transactions', month=month) }}">Барлығын көру</a>
+  </div>
+  <div class="table-wrap">
+    <table class="table table-stack">
+      <thead><tr><th>Күні</th><th>Санат</th><th>Түсініктеме</th><th class="num">Сома</th></tr></thead>
+      <tbody>
+        {% for r in recent %}
+        <tr>
+          <td data-label="Күні">{{ r.tx_date|kzdate }}</td>
+          <td data-label="Санат">{{ r.category }}</td>
+          <td data-label="Түсініктеме" class="note">{{ r.note or '—' }}</td>
+          <td data-label="Сома" class="num {{ 'pos' if r.kind == 'income' else 'neg' }}">{{ '+' if r.kind == 'income' else '−' }}{{ r.amount|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
