@@ -13,4 +13,7 @@
   <button class="btn btn-primary btn-block" type="submit">Кіру</button>
 </form>
 <p class="auth-alt">Аккаунтыңыз жоқ па? <a href="{{ url_for('main.register') }}">Тіркелу</a></p>
+{% if config.DEMO_LOGIN %}
+<p class="auth-alt muted">Демо: логин <strong>demo</strong>, құпиясөз <strong>demo1234</strong></p>
+{% endif %}
 {% endblock %}

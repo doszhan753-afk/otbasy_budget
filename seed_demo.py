@@ -2,6 +2,7 @@
 
 Қолдану:  python seed_demo.py
 Бұрынғы demo аккаунты болса, ол өшіріліп, қайта жасалады.
+Vercel-де seed_demo(app, reset=False) әр іске қосылғанда шақырылады (api/index.py).
 """
 import random
 from datetime import date
@@ -10,8 +11,6 @@ from werkzeug.security import generate_password_hash
 
 from app import (MONTHS_KK, create_app, get_db, month_range, seed_user_defaults,
                  shift_month, current_month)
-
-random.seed(2026)
 
 MEMBERS = ["Әке", "Ана", "Айгерім", "Бекзат"]
 
@@ -33,10 +32,16 @@ INCOMES = [
 ]
 
 
-def main():
-    app = create_app()
+def seed_demo(app, reset=True):
+    """demo аккаунтын жасайды, операциялар санын қайтарады.
+
+    reset=False болса және demo бұрыннан бар болса, ештеңе өзгертпейді (0 қайтарады).
+    """
+    rnd = random.Random(2026)
     with app.app_context():
         db = get_db()
+        if not reset and db.execute("SELECT 1 FROM users WHERE username = 'demo'").fetchone():
+            return 0
         db.execute("DELETE FROM users WHERE username = 'demo'")
         cur = db.execute(
             "INSERT INTO users(username, password_hash, family_name) VALUES (?, ?, ?)",
@@ -63,8 +68,8 @@ def main():
                              amount, date(y, m, min(5, last_day)).isoformat(), note))
             for cat, member, (lo, hi), times, note in EXPENSES:
                 for _ in range(times):
-                    day = random.randint(1, last_day)
-                    amount = round(random.randint(lo, hi), -2)
+                    day = rnd.randint(1, last_day)
+                    amount = round(rnd.randint(lo, hi), -2)
                     rows.append((uid, cats[(cat, "expense")], members.get(member), "expense",
                                  max(amount, 500), date(y, m, day).isoformat(), note))
         db.executemany(
@@ -77,8 +82,13 @@ def main():
             db.execute("INSERT INTO budgets(user_id, category_id, month, limit_amount) VALUES (?, ?, ?, ?)",
                        (uid, cats[(cat, "expense")], this_month, limit))
         db.commit()
-        print(f"Демо-деректер дайын: {len(rows)} операция, {MONTHS_KK[int(this_month[5:]) - 1]} айына лимиттер.")
-        print("Кіру: логин  demo  /  құпиясөз  demo1234")
+        return len(rows)
+
+
+def main():
+    count = seed_demo(create_app())
+    print(f"Демо-деректер дайын: {count} операция, {MONTHS_KK[int(current_month()[5:]) - 1]} айына лимиттер.")
+    print("Кіру: логин  demo  /  құпиясөз  demo1234")
 
 
 if __name__ == "__main__":
